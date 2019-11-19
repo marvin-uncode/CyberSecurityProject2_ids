@@ -1,2 +1,2 @@
-# CyberSecurityProj-2
+# CyberSecurityProj2_ids
 ID detection scripts
