@@ -1,0 +1,6 @@
+Notes:
+
+- Ettercap:
+  - On Kali
+  - 
+
