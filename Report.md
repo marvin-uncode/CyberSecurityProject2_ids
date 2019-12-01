@@ -12,7 +12,7 @@ geometry:
 # 1 Executive Summary 
 
 The purpose of this project was to develop and demonstrate our understanding of the basics of Intrusion Detection Programs (IDS), the different types of IDS, and the process of creating a proprietary IDS.  
-
+ 
 Our assignment was to pose as member of a company's *"blue team"*, protecting our company against malware. To do this, we designed and tested a proprietary IDS that detects a variety of attacks.  
 
 **Our script, that utilizes *anomaly* and *signature* based itrusion detection, does successfully detects a variety of attacks.**
@@ -68,6 +68,37 @@ In order to create a program that detects specific attacks, we conducted some ex
 
 \newpage
 # 4 Code Explanation
+
+## 4.1 NMAP Detection  
+
+## 4.2 Ettercap Detection
+
+Ettercap is a piece of software that can facilitate **Man-in-the-Middle** attacks. In order to accomplish this, ettercap first performs **ARP Cache Poisoning** which is what we decided to detect.  
+
+
+```python
+# Detection of ARP Cache Poisoning
+
+#Pyshark allows python integration with Wireshark
+import pyshark
+
+#Instantiate live capture over eth0.
+#Filters duplicate-address-frame
+capture = pyshark.LiveCapture(
+        interface='eth0', 
+        display_filter='arp.duplicate-address-frame')
+
+#If caught, this means ARP Cache Poisoning has occurred
+for packet in capture.sniff_continuously():
+    print("ARP CACHE POISONING DETECTED")
+    print("Attacker Machine:", str(packet.ip.src))
+
+```
+
+## 4.3 Responder Detection
+
+## 4.4 Metasploit Detection
+
 
 \newpage
 # 5 Testing and Packet Capture  
