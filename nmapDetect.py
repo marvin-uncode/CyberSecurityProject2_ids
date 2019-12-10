@@ -5,22 +5,22 @@ capture = pyshark.LiveCapture(interface='eth0')
 ack_ports = defaultdict(set()) #src port -> dst port 
 
 for packet in capture.sniff_continuously():
-  if tcp && tcp.flags.fin == 1 
-    && (tcp.window_size==1024 || 
-        tcp.window_size==2048 || 
-        tcp.window_size==3072 || 
-        tcp.window_size==4096):
+  if packet.tcp && packet.tcp.flags.fin == 1 
+    && (packet.tcp.window_size==1024 || 
+        packet.tcp.window_size==2048 || 
+        packet.tcp.window_size==3072 || 
+        packet.tcp.window_size==4096):
     print("NMAP SYN SCAN DETECTED")
     print("Attacker Machine:", str(packet.ip.src))
 
 
-  elif tcp && tcp.flags==0x29 && tcp.flags.fin==1 && tcp.flags.push==1 && tcp.flags.urg==1:
+  elif packet.tcp && packet.tcp.flags==0x29 && packet.tcp.flags.fin==1 && packet.tcp.flags.push==1 && packet.tcp.flags.urg==1:
     print('NMAP XMAS SCAN DETECTED')
     print("Attacker Machine:", str(packet.ip.src))
   
-  elif tcp && tcp.flags==0x10 && tcp.flags.ack==1:
-    ack_ports[tcp.srcport].add(tcp.dstport)
-    if len(ack_ports[tcp.srcport]) > 15:
+  elif packet.tcp && packet.tcp.flags==0x10 && packet.tcp.flags.ack==1:
+    ack_ports[packet.tcp.srcport].add(packet.tcp.dstport)
+    if len(ack_ports[packet.tcp.srcport]) > 15:
       print('NMAP ACK SCAN DETECTED')
       print("Attacker Machine:", str(packet.ip.src))
    
