@@ -75,6 +75,8 @@ From the information about the window size and given that NMAP SYN scan packets 
 
 ### 3.1.2 ACK Scan
 
+Because of the frequency of legitimate TCP ACK packets, we utilized a *heuristic* solution to detect NMAP ACK scan traffic. Knowing that an ACK scan generally sends packets to a large number of destination ports, we can detect an ACK scan by keeping track of the source and destination ports of the packets.  
+
 
 
 ![Initial ACK Scan][ackscan]\  
@@ -90,7 +92,7 @@ Because XMAS scans utilize several TCP flags in an otherwise uncommon combonatio
 
 ## 3.2 Ettercap
 
-To learn how to detect a man-in-the-middle attack from Ettercap, we firt ran the attack on our  
+To learn how to detect a man-in-the-middle attack from Ettercap, we first ran the attack on our network while monitoring the traffic using Wireshark.
 
 ## 3.3 Responder
 
@@ -102,6 +104,12 @@ To learn how to detect a man-in-the-middle attack from Ettercap, we firt ran the
 ## 4.1 NMAP Detection  
 
 ```python
+
+#To detect an ACK Scan, we store a set of witnessed 
+# destination ports for each source port. 
+ack_ports = defaultdict(set()) #src port -> dst port 
+
+#Performing a live capture over eth0 
 capture = pyshark.LiveCapture(interface='eth0')
 for packet in capture.sniff_continuously():
   
@@ -117,11 +125,26 @@ for packet in capture.sniff_continuously():
 
 
   #Check for XMAS Scan as described in section 3.1.3
-  if tcp && tcp.flags==0x29 && tcp.flags.fin==1 && tcp.flags.push==1 && tcp.flags.urg==1:
+  elif tcp && tcp.flags==0x29 && tcp.flags.fin==1 && tcp.flags.push==1 && tcp.flags.urg==1:
     print('NMAP XMAS SCAN DETECTED')
 
     #Print source ip
     print("Attacker Machine:", str(packet.ip.src))
+
+
+  #For ACK Scan, we only need to analyze ACK packets 
+  elif tcp && tcp.flags==0x10 && tcp.flags.ack==1:
+
+    #Maps seen destination ports to each source port.
+    # Key: source port ==> Value: set of destination ports from this source
+    ack_ports[tcp.srcport].add(tcp.dstport)
+
+    #Trigger detection if more than 15 destination ports 
+    # are sent from the same source port. 
+    if len(ack_ports[tcp.srcport]) > 15:
+      print('NMAP ACK SCAN DETECTED')
+      print("Attacker Machine:", str(packet.ip.src))
+
 
 ```
 
