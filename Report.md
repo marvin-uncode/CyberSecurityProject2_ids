@@ -100,6 +100,9 @@ To learn how to detect a man-in-the-middle attack from Ettercap, we first ran th
 
 ## 3.3 Responder
 
+![Initial Responder Test][respondertest]\  
+
+
 ## 3.4 Metasploit - CVE-2017-010 - ms17_010_psexec
 
 \newpage
@@ -193,18 +196,29 @@ for packet in capture.sniff_continuously():
 \newpage
 # 5 Testing and Packet Capture  
 
+For each attack, we deployed Wireshark and our intrusion detection system in the background.  
+
+## 5.1 NMAP Detection  
+
+## 5.2 Ettercap Detection
+
+## 5.3 Responder Detection
+
+## 5.4 Metasploit Detection
+
+
 \newpage
 # 6 Conclusions
 
-In completing this assignment, we were successfully able to deploy and detect each of the four attacks using a propietary intrusion detection system, all while monitoring and analyzing the network traffic. After completing this assignment, we have a much deeper understanding of the nature of intrusion detection systems and the type of. 
+In completing this assignment, we were successfully able to deploy and detect each of the four attacks using a propietary intrusion detection system, all while monitoring and analyzing the network traffic. After completing this assignment, we have a much deeper understanding of the nature of intrusion detection systems. In addition, we developed a greater appreciation for the role of a *blue team* in companies, having this project closely reflect their work.   
 
+This project showed just how challenging it is to defend againts network attacks. While our script detects the valinila version of each attack, there are cirtainly a litney of ways to spoof our intrusion detection system. Dispite this, we do acknowlege that our program could forseeably grow into a sophisticated, industrial-grade intrusion detection system. The industrial intrusion detection systems.  
 
 \newpage
 # 7 Recommendations
 
 
-[ackscan]:pics\NMAPpcaptest.png "NMAP Test"( width=70% )   
-[responder]:pics\screenshotresponder.JPG "Responder Test"( width=70% )
+[respondertest]:pics\screenshotresponder.JPG "Responder Test"( width=70% )
 [acktest]:pics\nmapacktest.png "ACK Scan Test"( width=70% )
 [xmastest]:pics\nmapxmastest.png "XMAS Scan Test"( width=70% )
 
