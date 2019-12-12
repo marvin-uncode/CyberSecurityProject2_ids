@@ -71,7 +71,7 @@ In addition, we utilized a *heuristic* solution to detect NMAP SYN scan traffic.
 
 From the information about the window size and given that NMAP SYN scan packets have the FIN flag set, we can distinguish a SYN scan packet using the following Wireshark flags:  
 
-   `tcp && tcp.flags == 0x02 && (tcp.window_size==1024 || tcp.window_size==2048 || tcp.window_size==3072 || tcp.window_size==4096)`  
+   `tcp and tcp.flags == 0x02 and (tcp.window_size==1024 or tcp.window_size==2048 or tcp.window_size==3072 or tcp.window_size==4096)`  
 
 ![Initial SYN Scan][synscan]\  
 
@@ -79,7 +79,7 @@ From the information about the window size and given that NMAP SYN scan packets 
 ### 3.1.2 ACK Scan
 
 Because of the frequency of legitimate TCP ACK packets, we utilized a *heuristic* solution to detect NMAP ACK scan traffic. Knowing that an ACK scan generally sends packets to a large number of destination ports, we can detect an ACK scan by keeping track of the source and destination ports of the packets. We use this Wireshark filter to detect ACK packets:  
-   `tcp && tcp.flags==0x10`    
+   `tcp and tcp.flags==0x10`    
 
 
 ![Initial ACK Scan][acktest]\  
@@ -88,7 +88,7 @@ Because of the frequency of legitimate TCP ACK packets, we utilized a *heuristic
 ### 3.1.3 XMAS Scan
 
 Because XMAS scans utilize several TCP flags in an otherwise uncommon combonation, we can detect XMAS scan packets by simply checking the size of the TCP flags and which flags are currently set (FIN, PSH, URG): 
-   `tcp && tcp.flags==0x29`  
+   `tcp and tcp.flags==0x29`  
 
 ![Initial XMAS Scan][xmastest]\
 
@@ -122,9 +122,9 @@ capture = pyshark.LiveCapture(interface='eth0')
 for packet in capture.sniff_continuously():
   
   #Check for SYN Scan as described in section 3.1.1
-  if packet.tcp && packet.tcp.flags.fin == 1 
-      && (packet.tcp.window_size==1024 || packet.tcp.window_size==2048 || 
-          packet.tcp.window_size==3072 || packet.tcp.window_size==4096):
+  if packet.tcp and packet.tcp.flags.fin == 1 
+      and (packet.tcp.window_size==1024 or packet.tcp.window_size==2048 or 
+          packet.tcp.window_size==3072 or packet.tcp.window_size==4096):
     
     #Maps seen destination ports to each source port.
     # Key: source port ==> Value: set of destination ports from this source
@@ -141,7 +141,7 @@ for packet in capture.sniff_continuously():
 
     
   #Check for XMAS Scan as described in section 3.1.3
-  elif packet.tcp && packet.tcp.flags==0x2:
+  elif packet.tcp and packet.tcp.flags==0x2:
     print('NMAP XMAS SCAN DETECTED')
 
     #Print source ip
@@ -149,7 +149,7 @@ for packet in capture.sniff_continuously():
 
 
   #For ACK Scan, we only need to analyze ACK packets 
-  elif packet.tcp && packet.tcp.flags==0x10:
+  elif packet.tcp and packet.tcp.flags==0x10:
 
     #Maps seen destination ports to each source port.
     # Key: source port ==> Value: set of destination ports from this source
