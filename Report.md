@@ -44,10 +44,9 @@ Our script must detect the following attack tools being run againsts the network
    - Operating System: **Kali Linux**  
    - Server Location: **Shelby 2129**  
    - IP Address: **192.168.x.10**  
-   - Scripts: !!!**INSERT SCRIPTS**!!! 
    
 
-##### Defender machine specifications:  
+##### Detection machine specifications:  
 
    - Operating System: **Microsoft Windows 10**
    - Server Location: **Shelby 2129**  
@@ -87,7 +86,7 @@ Because of the frequency of legitimate TCP ACK packets, we utilized a *heuristic
 
 ### 3.1.3 XMAS Scan
 
-Because XMAS scans utilize several TCP flags in an otherwise uncommon combonation, we can detect XMAS scan packets by simply checking the size of the TCP flags and which flags are currently set (FIN, PSH, URG): 
+Because XMAS scans utilize several TCP flags in an otherwise uncommon combination, we can detect XMAS scan packets by simply checking the size of the TCP flags and which flags are currently set (FIN, PSH, URG): 
    `tcp and tcp.flags==0x29`  
 
 ![Initial XMAS Scan][xmastest]\
@@ -166,7 +165,7 @@ for packet in capture.sniff_continuously():
 
 ## 4.2 Ettercap Detection
 
-Ettercap is a piece of software that can facilitate **Man-in-the-Middle** attacks. In order to accomplish this, ettercap first performs **ARP Cache Poisoning** which is what we decided to detect.  
+Ettercap is a piece of software that can facilitate **Man-in-the-Middle** attacks. In order to accomplish this, Ettercap first performs **ARP Cache Poisoning** which is what we decided to detect.  
 
 
 ```python
@@ -210,9 +209,9 @@ For each attack, we deployed Wireshark and our intrusion detection system in the
 \newpage
 # 6 Conclusions
 
-In completing this assignment, we were successfully able to deploy and detect each of the four attacks using a propietary intrusion detection system, all while monitoring and analyzing the network traffic. After completing this assignment, we have a much deeper understanding of the nature of intrusion detection systems. In addition, we developed a greater appreciation for the role of a *blue team* in companies, having this project closely reflect their work.   
+In completing this assignment, we were successfully able to deploy and detect each of the four attacks using a proprietary intrusion detection system, all while monitoring and analyzing the network traffic. After completing this assignment, we have a much deeper understanding of the nature of intrusion detection systems. In addition, we developed a greater appreciation for the role of a *blue team* in companies, having this project closely reflect their work.   
 
-This project showed just how challenging it is to defend againts network attacks. While our script detects the valinila version of each attack, there are cirtainly a litney of ways to spoof our intrusion detection system. Dispite this, we do acknowlege that our program could forseeably grow into a sophisticated, industrial-grade intrusion detection system. The industrial intrusion detection systems.  
+This project showed just how challenging it is to defend against network attacks. While our script detects the vanilla version of each attack, there are certainly a litany of ways to spoof our intrusion detection system. Despite this, we do acknowledge that our program could forseeably grow into a sophisticated, industrial-grade intrusion detection system. The industrial intrusion detection systems.  
 
 \newpage
 # 7 Recommendations
