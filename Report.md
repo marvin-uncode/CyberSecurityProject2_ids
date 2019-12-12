@@ -15,7 +15,7 @@ The purpose of this project was to develop and demonstrate our understanding of 
  
 Our assignment was to pose as member of a company's *"blue team"*, protecting our company against malware. To do this, we designed and tested a proprietary IDS that detects a variety of attacks.  
 
-**Our script, that utilizes *anomaly* and *signature* based itrusion detection, does successfully detects a variety of attacks.**
+**Our script, that utilizes *signature* and *heuristic* based itrusion detection, does successfully detects a variety of attacks.**
 
 
 \newpage
@@ -67,27 +67,30 @@ To learn how to detect NMAP scans on the network, we first ran the different typ
 
 Because of the frequency of legitmate TCP SYN packets, we had to find a distinguishing factor of NMAP SYN scan packets. From online research, we discovered that NMAP SYN scan packets always have a standard window size: 1024, 2048, 3072, or 4096.
 
+In addition, we utilized a *heuristic* solution to detect NMAP SYN scan traffic. Knowing that an SYN scan generally sends packets to a large number of destination ports, we can detect an SYN scan by keeping track of the source and destination ports of the packets.  
+
 From the information about the window size and given that NMAP SYN scan packets have the FIN flag set, we can distinguish a SYN scan packet using the following Wireshark flags:  
-   `tcp && tcp.flags.fin == 1 && (tcp.window_size==1024 || tcp.window_size==2048 || tcp.window_size==3072 || tcp.window_size==4096)`  
+
+   `tcp && tcp.flags == 0x02 && (tcp.window_size==1024 || tcp.window_size==2048 || tcp.window_size==3072 || tcp.window_size==4096)`  
 
 ![Initial SYN Scan][synscan]\  
 
 
 ### 3.1.2 ACK Scan
 
-Because of the frequency of legitimate TCP ACK packets, we utilized a *heuristic* solution to detect NMAP ACK scan traffic. Knowing that an ACK scan generally sends packets to a large number of destination ports, we can detect an ACK scan by keeping track of the source and destination ports of the packets.  
+Because of the frequency of legitimate TCP ACK packets, we utilized a *heuristic* solution to detect NMAP ACK scan traffic. Knowing that an ACK scan generally sends packets to a large number of destination ports, we can detect an ACK scan by keeping track of the source and destination ports of the packets. We use this Wireshark filter to detect ACK packets:  
+   `tcp && tcp.flags==0x10`    
 
 
-
-![Initial ACK Scan][ackscan]\  
+![Initial ACK Scan][acktest]\  
 
 
 ### 3.1.3 XMAS Scan
 
 Because XMAS scans utilize several TCP flags in an otherwise uncommon combonation, we can detect XMAS scan packets by simply checking the size of the TCP flags and which flags are currently set (FIN, PSH, URG): 
-   `tcp && tcp.flags==0x29 && tcp.flags.fin==1 && tcp.flags.push==1 && tcp.flags.urg==1`  
+   `tcp && tcp.flags==0x29`  
 
-![Initial XMAS Scan][xmasscan]\
+![Initial XMAS Scan][xmastest]\
 
 
 ## 3.2 Ettercap
@@ -106,9 +109,10 @@ To learn how to detect a man-in-the-middle attack from Ettercap, we first ran th
 
 ```python
 
-#To detect an ACK Scan, we store a set of witnessed 
+#To detect an ACK and SYN Scan, we store a set of witnessed 
 # destination ports for each source port. 
-ack_ports = defaultdict(set()) #src port -> dst port 
+ack_ports = defaultdict(set()) #src port -> dst port (ack scan)
+syn_ports = defaultdict(set()) #src port -> dst port (syn scan)
 
 #Performing a live capture over eth0 
 capture = pyshark.LiveCapture(interface='eth0')
@@ -119,14 +123,22 @@ for packet in capture.sniff_continuously():
       && (packet.tcp.window_size==1024 || packet.tcp.window_size==2048 || 
           packet.tcp.window_size==3072 || packet.tcp.window_size==4096):
     
-    #Print source ip
-    print("NMAP SYN SCAN DETECTED")
-    print("Attacker Machine:", str(packet.ip.src))
+    #Maps seen destination ports to each source port.
+    # Key: source port ==> Value: set of destination ports from this source
+    syn_ports[packet.tcp.srcport].add(packet.tcp.dstport)
 
 
+    #Trigger detection if more than 15 destination ports 
+    # are sent from the same source port. 
+    if len(syn_ports[packet.tcp.srcport]) > 15:
 
+      #Print source ip
+      print("NMAP SYN SCAN DETECTED")
+      print("Attacker Machine:", str(packet.ip.src))
+
+    
   #Check for XMAS Scan as described in section 3.1.3
-  elif packet.tcp && packet.tcp.flags==0x29 && packet.tcp.flags.fin==1 && packet.tcp.flags.push==1 && packet.tcp.flags.urg==1:
+  elif packet.tcp && packet.tcp.flags==0x2:
     print('NMAP XMAS SCAN DETECTED')
 
     #Print source ip
@@ -134,7 +146,7 @@ for packet in capture.sniff_continuously():
 
 
   #For ACK Scan, we only need to analyze ACK packets 
-  elif packet.tcp && packet.tcp.flags==0x10 && packet.tcp.flags.ack==1:
+  elif packet.tcp && packet.tcp.flags==0x10:
 
     #Maps seen destination ports to each source port.
     # Key: source port ==> Value: set of destination ports from this source
@@ -184,12 +196,16 @@ for packet in capture.sniff_continuously():
 \newpage
 # 6 Conclusions
 
+In completing this assignment, we were successfully able to deploy and detect each of the four attacks using a propietary intrusion detection system, all while monitoring and analyzing the network traffic. After completing this assignment, we have a much deeper understanding of the nature of intrusion detection systems and the type of. 
+
+
 \newpage
 # 7 Recommendations
 
 
 [ackscan]:pics\NMAPpcaptest.png "NMAP Test"( width=70% )   
 [responder]:pics\screenshotresponder.JPG "Responder Test"( width=70% )
-
+[acktest]:pics\nmapacktest.png "ACK Scan Test"( width=70% )
+[xmastest]:pics\nmapxmastest.png "XMAS Scan Test"( width=70% )
 
 
