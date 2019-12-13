@@ -1,0 +1,11 @@
+In learning how to detect the metasploit Eternal Blue attack, we first ran an attack on our
+our network while monitoring and recording the traffic using Wireshark. On closer research
+of what the Eternal Blue exploit enacts, we monitored the traffic for repeated NT requests/
+responses over the network. The large amount of requests sets up the SMB for a specific
+packet that will exploit system. The large NT Trans requests lead into Secondary Trans2
+Requests that act as a launcher for the malware on the remote machine. This packet may 
+show as a malformed packet. Successful or in-progress requests and responses for 
+this type of attack will have the Multiplex ID's consisting 82, 81, 65, and 64
+as well checking for nt_value for a successful connection. The following
+searches for these conditions:
+smb.mid == 65 and smb.nt_status == 0 
