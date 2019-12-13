@@ -1,6 +1,6 @@
-\title{COMP 5970/6970: HTTP Reverse Shell}
-\author{Alex Lewin, Charlie Harper}
-\date{11/8/19}
+\title{COMP 5970/6970: Intrusion Detection}
+\author{Alex Lewin, Marvin, Lakshimi}
+\date{12/12/19}
 
 ---
 geometry:
@@ -103,6 +103,13 @@ To learn how to detect a man-in-the-middle attack from Ettercap, we first ran th
 
 
 ## 3.4 Metasploit - CVE-2017-010 - ms17_010_psexec
+
+When learning how to detect the metasploit Eternal Blue attack, we first ran an attack on our our network while monitoring and recording the traffic using Wireshark. On closer research of what the Eternal Blue exploit enacts, we monitored the traffic for repeated NT requests/ responses over the network.  
+
+The large amount of requests sets up the SMB for a specific packet that will exploit system. The large NT Trans requests lead into Secondary Trans2 Requests that act as a launcher for the malware on the remote machine. This packet may show as a malformed packet. Successful or in-progress requests and responses for this type of attack will have the Multiplex ID's consisting 82, 81, 65, and 64 as well checking for nt_value for a successful connection.  
+
+The following searches for these conditions:  
+   `smb.mid == 65 and smb.nt_status == 0`
 
 ![Metasploit Test][metatest]\  
 
@@ -233,8 +240,11 @@ for packet in capture:
     
   #filters wireshark capture for Multiplex ids 65, 64, 81, 82 and nt status
   #alerts and prints attacker ip address 
-  #(the first instance of the correct Multiplex ID due to first request by attacker sent
-  if (packet.smb.mid == '65' or packet.smb.mid == '64' or packet.smb.mid == '81' or packet.smb.mid == '82') and (packet.smb.nt_status == '0'):
+  #the first instance of the correct Multiplex ID due to first request by attacker sent
+  if (packet.smb.mid == '65' or packet.smb.mid == '64' 
+      or packet.smb.mid == '81' 
+      or packet.smb.mid == '82') 
+    and (packet.smb.nt_status == '0'):
     print("ETERNAL BLUE DETECTED")
     print("Attacker Machine:", str(packet.ip.src))
 
@@ -263,8 +273,9 @@ For each attack, we deployed Wireshark and our intrusion detection system in the
 
 ## 5.2 Ettercap Detection
 
-![Ettercap Test][ettercapfound]\  
-![Ettercap Result][ettercapcmd]\  
+![Ettercap Test][ettercapfound]\    
+  
+![Ettercap Result][ettercapcmd]\   
 
 ## 5.3 Responder Detection
 
@@ -282,17 +293,26 @@ This project showed just how challenging it is to defend against network attacks
 \newpage
 # 7 Recommendations
 
+We would advise any business with an active network to purchase an industrial-grade intrusion detection system or intrusion prevention system. Anti-virus software is the easiest and most efficient way to protect against attackers.  
 
-[respondertest]:pics\respondertest.jpg "Responder Test"( width=70% )  
-[acktest]:pics\nmapacktest.png "ACK Scan Test"( width=70% )  
-[syntest]:pics\nmapsyntest.png "SYN Scan Test"( width=70% )  
-[xmastest]:pics\nmapxmastest.png "XMAS Scan Test"( width=70% )  
-[ettercaptest]:pics\ettercaptest.png "Ettercap Test"( width=70% )  
-[ettercapfound]:pics\ettercapfound.png "Ettercap Test"( width=70% )  
-[ettercapcmd]:pics\ettercapfound.png "Ettercap Test"( width=70% )  
-[syngood]:pics\syngood.png "SYN Scan Test"( width=70% )  
-[ackgood]:pics\ackood.png "ACK Scan Test"( width=70% )  
-[xmasgood]:pics\xmasgood.png "XMAS Scan Test"( width=70% )  
-[metatest]:pics\metatest.png "Metasploit Test"( width=70% )  
-[metagood]:pics\metagood.png "Metasploit Results"( width=70% )  
+In addition, we advise business to frequently update software to the newest, safe version. It is extreamly common for vulnerabilities to be fixed in updates. Having the latest version will protect againsts most known vulnerablilities.  
+
+For example, the vulnerabillity of Eternal Blue is caused by an outdated version SMB that could be on any given machine. A reccomendation to avoid this attack would be to consistantly update software to the newest version, such as the MS17-010 security update.    
+
+Finally, we advise companies to conduct frequent penetration tests. This will thwart out many of the vulnerabilities in a network.  
+
+--- 
+
+[respondertest]:pics\respondertest.jpg "Responder Test"{ width=100% }  
+[acktest]:pics\nmapacktest.png "ACK Scan Test"{ width=90% }  
+[syntest]:pics\nmapsyntest.png "SYN Scan Test"{ width=90% }  
+[xmastest]:pics\nmapxmastest.png "XMAS Scan Test"{ width=90% }  
+[ettercaptest]:pics\ettercaptest.png "Ettercap Test"{ width=70% }  
+[ettercapfound]:pics\ettercapfound.png "Ettercap Test"{ width=70% }  
+[ettercapcmd]:pics\ettercapcmd.png "Ettercap Test"{ width=70% }  
+[syngood]:pics\syngood.png "SYN Scan Test"{ width=70% }  
+[ackgood]:pics\ackgood.png "ACK Scan Test"{ width=70% }  
+[xmasgood]:pics\xmasgood.png "XMAS Scan Test"{ width=70% }  
+[metatest]:pics\metatest.jpg "Metasploit Test"{ width=100% }  
+[metagood]:pics\metagood.jpg "Metasploit Results"{ width=70% }  
 

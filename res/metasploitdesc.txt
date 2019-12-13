@@ -1,4 +1,4 @@
-In learning how to detect the metasploit Eternal Blue attack, we first ran an attack on our
+When learning how to detect the metasploit Eternal Blue attack, we first ran an attack on our
 our network while monitoring and recording the traffic using Wireshark. On closer research
 of what the Eternal Blue exploit enacts, we monitored the traffic for repeated NT requests/
 responses over the network. The large amount of requests sets up the SMB for a specific
