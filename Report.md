@@ -213,6 +213,26 @@ sniff(iface='Ethernet 10', prn=checker, filter='arp', store=False)
 
 ## 4.4 Metasploit Detection
 
+```python 
+
+#imports pyshark library
+import pyshark
+
+#runs live instance of wireshark capture
+capture = pyshark.LiveCapture(display_filter='smb')
+
+#continuously loops through packets
+for packet in capture:
+    
+  #filters wireshark capture for Multiplex ids 65, 64, 81, 82 and nt status
+  #alerts and prints attacker ip address 
+  #(the first instance of the correct Multiplex ID due to first request by attacker sent
+  if (packet.smb.mid == '65' or packet.smb.mid == '64' or packet.smb.mid == '81' or packet.smb.mid == '82') and (packet.smb.nt_status == '0'):
+    print("ETERNAL BLUE DETECTED")
+    print("Attacker Machine:", str(packet.ip.src))
+
+capture.sniff()
+```
 
 \newpage
 # 5 Testing and Packet Capture  
@@ -243,6 +263,7 @@ For each attack, we deployed Wireshark and our intrusion detection system in the
 
 ## 5.4 Metasploit Detection
 
+![Metasploit Test][metatest]\
 
 \newpage
 # 6 Conclusions
@@ -255,14 +276,15 @@ This project showed just how challenging it is to defend against network attacks
 # 7 Recommendations
 
 
-[respondertest]:pics\screenshotresponder.JPG "Responder Test"( width=70% )
-[acktest]:pics\nmapacktest.png "ACK Scan Test"( width=70% )
-[syntest]:pics\nmapsyntest.png "SYN Scan Test"( width=70% )
-[xmastest]:pics\nmapxmastest.png "XMAS Scan Test"( width=70% )
-[ettercaptest]:pics\ettercaptest.png "Ettercap Test"( width=70% )
-[ettercapfound]:pics\ettercapfound.png "Ettercap Test"( width=70% )
-[ettercapcmd]:pics\ettercapfound.png "Ettercap Test"( width=70% )
-[syngood]:pics\syngood.png "SYN Scan Test"( width=70% )
-[ackgood]:pics\ackood.png "ACK Scan Test"( width=70% )
-[xmasgood]:pics\xmasgood.png "XMAS Scan Test"( width=70% )
+[respondertest]:pics\respondertest.jpg "Responder Test"( width=70% )  
+[acktest]:pics\nmapacktest.png "ACK Scan Test"( width=70% )  
+[syntest]:pics\nmapsyntest.png "SYN Scan Test"( width=70% )  
+[xmastest]:pics\nmapxmastest.png "XMAS Scan Test"( width=70% )  
+[ettercaptest]:pics\ettercaptest.png "Ettercap Test"( width=70% )  
+[ettercapfound]:pics\ettercapfound.png "Ettercap Test"( width=70% )  
+[ettercapcmd]:pics\ettercapfound.png "Ettercap Test"( width=70% )  
+[syngood]:pics\syngood.png "SYN Scan Test"( width=70% )  
+[ackgood]:pics\ackood.png "ACK Scan Test"( width=70% )  
+[xmasgood]:pics\xmasgood.png "XMAS Scan Test"( width=70% )  
+[metatest]:pics\metatest.png "Metasploit Test"( width=70% )  
 
