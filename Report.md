@@ -66,7 +66,7 @@ To learn how to detect NMAP scans on the network, we first ran the different typ
 
 Because of the frequency of legitmate TCP SYN packets, we had to find a distinguishing factor of NMAP SYN scan packets. From online research, we discovered that NMAP SYN scan packets always have a standard window size: 1024, 2048, 3072, or 4096.
 
-From the information about the window size and given that NMAP SYN scan packets have the FIN flag set, we can distinguish a SYN scan packet using the following Wireshark flags:  
+From the information about the window size and given that NMAP SYN scan packets have the FIN flag set, we can distinguish a SYN scan packet *by signature* using the following Wireshark flags:  
 
    `tcp and tcp.flags == 0x02 and (tcp.window_size==1024 or tcp.window_size==2048 or tcp.window_size==3072 or tcp.window_size==4096)`  
 
@@ -78,7 +78,8 @@ In addition, we utilized a *heuristic* solution to detect NMAP SYN scan traffic.
 
 ### 3.1.2 ACK Scan
 
-Because of the frequency of legitimate TCP ACK packets, we utilized a *heuristic* solution to detect NMAP ACK scan traffic. Knowing that an ACK scan generally sends packets to a large number of destination ports, we can detect an ACK scan by keeping track of the source and destination ports of the packets. We use this Wireshark filter to detect ACK packets:  
+Because of the frequency of legitimate TCP ACK packets, we utilized a *heuristic* solution to detect NMAP ACK scan traffic. Knowing that an ACK scan generally sends packets to a large number of destination ports, we can detect an ACK scan by keeping track of the source and destination ports of the packets. We use this Wireshark filter to detect ACK packets *by signature*:  
+
    `tcp and tcp.flags==0x10`    
 
 
@@ -109,6 +110,7 @@ When learning how to detect the metasploit Eternal Blue attack, we first ran an 
 The large amount of requests sets up the SMB for a specific packet that will exploit system. The large NT Trans requests lead into Secondary Trans2 Requests that act as a launcher for the malware on the remote machine. This packet may show as a malformed packet. Successful or in-progress requests and responses for this type of attack will have the Multiplex ID's consisting 82, 81, 65, and 64 as well checking for nt_value for a successful connection.  
 
 The following searches for these conditions:  
+
    `smb.mid == 65 and smb.nt_status == 0`
 
 ![Metasploit Test][metatest]\  
@@ -223,6 +225,29 @@ sniff(iface='Ethernet 10', prn=checker, filter='arp', store=False)
 ```
 
 ## 4.3 Responder Detection
+
+```python
+
+import pyshark
+
+# During live capture, filter by protocols NBNS
+# *** Usually, DNS is used to resolve domain names.
+# *** When DNS fails, Windows uses LLMNR (Link-Local Multicast Name Resolution) to resolve names
+# *** If even LLMNR fails, NBNS (NetBIO Name Service) - which uses UDP - is used for name resolution
+# *** Responder takes advantage of this by listening for NBNS and LLMNR queries.
+# *** Responder then responds to those queries, claiming to be the domain the victim is searching for.
+# *** If an NBNS query is detected, followed immediately by a response from a valid IP, a Responder attack has occurred.
+
+# Start live capture (change interface when needed)
+cap = pyshark.LiveCapture(interface='eth0', display_filter='nbns')
+
+# Find when Responder intrudes communication by finding its signature name "RESPPROXYSRV"
+for packet in cap.sniff_continuously():
+	if packet.nbns.name.find('RESPPROXYSRV'):
+		print("RESPONDER ATTACK DETECTED!!")
+		break
+```
+
 
 ## 4.4 Metasploit Detection
 
