@@ -2,7 +2,7 @@
 import pyshark
 
 #runs live instance of wireshark capture
-capture = pyshark.LiveCapture(display_filter='smb')
+capture = pyshark.LiveCapture(interface='eth0', display_filter='smb')
 
 #continuously loops through packets
 for packet in capture:
