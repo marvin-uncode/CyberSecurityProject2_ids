@@ -104,6 +104,8 @@ To learn how to detect a man-in-the-middle attack from Ettercap, we first ran th
 
 ## 3.4 Metasploit - CVE-2017-010 - ms17_010_psexec
 
+![Metasploit Test][metatest]\  
+
 \newpage
 # 4 Code Explanation
 
@@ -179,7 +181,11 @@ def get_mac(ip):
   #Returns true mac address of ip
   #Throws IndexError if blocked
   p = Ether(dst='ff:ff:ff:ff:ff:ff')/ARP(pdst=ip)
+
+  #Traces true mac address
   result = srp(p, timeout=3, verbose=False)[0]
+
+  #Returns true mac address of ip
   return result[0][1].hwsrc  
 
 def checker(pkt):
@@ -212,6 +218,7 @@ sniff(iface='Ethernet 10', prn=checker, filter='arp', store=False)
 ## 4.3 Responder Detection
 
 ## 4.4 Metasploit Detection
+
 
 ```python 
 
@@ -263,7 +270,6 @@ For each attack, we deployed Wireshark and our intrusion detection system in the
 
 ## 5.4 Metasploit Detection
 
-![Metasploit Test][metatest]\  
 ![Metasploit Result][metagood]\  
 
 \newpage
