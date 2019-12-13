@@ -66,13 +66,14 @@ To learn how to detect NMAP scans on the network, we first ran the different typ
 
 Because of the frequency of legitmate TCP SYN packets, we had to find a distinguishing factor of NMAP SYN scan packets. From online research, we discovered that NMAP SYN scan packets always have a standard window size: 1024, 2048, 3072, or 4096.
 
-In addition, we utilized a *heuristic* solution to detect NMAP SYN scan traffic. Knowing that an SYN scan generally sends packets to a large number of destination ports, we can detect an SYN scan by keeping track of the source and destination ports of the packets.  
-
 From the information about the window size and given that NMAP SYN scan packets have the FIN flag set, we can distinguish a SYN scan packet using the following Wireshark flags:  
 
    `tcp and tcp.flags == 0x02 and (tcp.window_size==1024 or tcp.window_size==2048 or tcp.window_size==3072 or tcp.window_size==4096)`  
 
-![Initial SYN Scan][synscan]\  
+In addition, we utilized a *heuristic* solution to detect NMAP SYN scan traffic. Knowing that an SYN scan generally sends packets to a large number of destination ports, we can detect an SYN scan by keeping track of the source and destination ports of the packets.   
+
+
+![Initial SYN Scan][syntest]\  
 
 
 ### 3.1.2 ACK Scan
@@ -94,8 +95,7 @@ Because XMAS scans utilize several TCP flags in an otherwise uncommon combinatio
 
 ## 3.2 Ettercap
 
-To learn how to detect a man-in-the-middle attack from Ettercap, we first ran the attack on our network while monitoring the traffic using Wireshark. Since Wireshark has a pre-built flag that detects Arp-Cache-Poisoning, we can detect an attack from Ettercap by checking if packets have this flag toggled:  
-  `arp.duplicate-address-frame`
+To learn how to detect a man-in-the-middle attack from Ettercap, we first ran the attack on our network while monitoring the traffic using Wireshark. Since PyShark does not have any support for ARP traffic, we decided to use the python module *Scapy* instead. To detect if an ARP Cache Spoof has occured, we checked if the reported source mac address in each packet, matched the true mac address.  
 
 ## 3.3 Responder
 
@@ -167,23 +167,45 @@ for packet in capture.sniff_continuously():
 
 Ettercap is a piece of software that can facilitate **Man-in-the-Middle** attacks. In order to accomplish this, Ettercap first performs **ARP Cache Poisoning** which is what we decided to detect.  
 
+Since Wireshark does not implement a way to directly filter for ARP traffic, we opted to use the python module, **scapy**, instead.
+
 
 ```python
-# Detection of ARP Cache Poisoning
 
-#Pyshark allows python integration with Wireshark
-import pyshark
+from scapy.all import Ether, ARP, srp, sniff, conf
 
-#Instantiate live capture over eth0.
-#Filters duplicate-address-frame
-capture = pyshark.LiveCapture(
-        interface='eth0', 
-        display_filter='arp.duplicate-address-frame')
+#Helper function to find mac addr
+def get_mac(ip):
+  #Returns true mac address of ip
+  #Throws IndexError if blocked
+  p = Ether(dst='ff:ff:ff:ff:ff:ff')/ARP(pdst=ip)
+  result = srp(p, timeout=3, verbose=False)[0]
+  return result[0][1].hwsrc  
 
-#If caught, this means ARP Cache Poisoning has occurred
-for packet in capture.sniff_continuously():
-    print("ARP CACHE POISONING DETECTED")
-    print("Attacker Machine:", str(packet.ip.src))
+def checker(pkt):
+  #Filters for ARP responses only
+  if not pkt.haslayer(ARP) or not pkt[ARP].op == 2:
+    return
+  try:
+    #calls helper function for finding mac
+    real_mac = get_mac(pkt[ARP].psrc)
+    #gets mac address from packet
+    response_mac = pkt[ARP].hwsrc
+
+    #if they don't match, arp 
+    #cache poisoning is occuring
+    if real_mac != response_mac:
+      print('ARP Cache Spoof Detected')
+      print('Real mac addr: ', str(real_mac.upper()))
+      print('Fake mac addr: ', str(response_mac.upper()))
+      return
+
+  except IndexError:
+    print('indexerror')
+    pass
+    
+#Passes every sniffed packed to 'checker'
+sniff(iface='Ethernet 10', prn=checker, filter='arp', store=False)
 
 ```
 
@@ -199,7 +221,23 @@ For each attack, we deployed Wireshark and our intrusion detection system in the
 
 ## 5.1 NMAP Detection  
 
+### 5.1.1 SYN Scan
+
+![SYN Scan Detection][syngood]\
+
+### 5.1.2 ACK Scan
+
+![ACK Scan Detection][ackgood]\
+
+
+### 5.1.3 XMAS Scan
+
+![XMAS Scan Detection][xmasgood]\
+
 ## 5.2 Ettercap Detection
+
+![Ettercap Test][ettercapfound]\
+![Ettercap Result][ettercapcmd]\
 
 ## 5.3 Responder Detection
 
@@ -219,6 +257,12 @@ This project showed just how challenging it is to defend against network attacks
 
 [respondertest]:pics\screenshotresponder.JPG "Responder Test"( width=70% )
 [acktest]:pics\nmapacktest.png "ACK Scan Test"( width=70% )
+[syntest]:pics\nmapsyntest.png "SYN Scan Test"( width=70% )
 [xmastest]:pics\nmapxmastest.png "XMAS Scan Test"( width=70% )
-
+[ettercaptest]:pics\ettercaptest.png "Ettercap Test"( width=70% )
+[ettercapfound]:pics\ettercapfound.png "Ettercap Test"( width=70% )
+[ettercapcmd]:pics\ettercapfound.png "Ettercap Test"( width=70% )
+[syngood]:pics\syngood.png "SYN Scan Test"( width=70% )
+[ackgood]:pics\ackood.png "ACK Scan Test"( width=70% )
+[xmasgood]:pics\xmasgood.png "XMAS Scan Test"( width=70% )
 
