@@ -1,5 +1,5 @@
 \title{COMP 5970/6970: Intrusion Detection}
-\author{Alex Lewin, Marvin, Lakshimi}
+\author{Alex Lewin, Marvin Bell, Lakshmi Krishnaprasad}
 \date{12/12/19}
 
 ---
@@ -30,7 +30,7 @@ Our assignment was to pose as member of a company's *"blue team"*, protecting ou
    * **Signature**  
    * **Heuristic**  
 
-Our script must detect the following attack tools being run againsts the network:  
+Our script must detect the following attack tools being run against the network:  
 
    * **NMAP - SYN, ACK, and Christmas Scans**  
    * **Ettercap**  
@@ -45,26 +45,18 @@ Our script must detect the following attack tools being run againsts the network
    - Server Location: **Shelby 2129**  
    - IP Address: **192.168.x.10**  
    
-
-##### Detection machine specifications:  
-
-   - Operating System: **Microsoft Windows 10**
-   - Server Location: **Shelby 2129**  
-   - IP Address: **192.168.x.30**  
-   - `python3 --version`: **`Python 3.6.7`**  
-
 \newpage
 # 3 Information Discovery
 
-In order to create a program that detects specific attacks, we conducted some exploritory tests. For each script, we ran the attack with wireshark in the backround so we could analyze the unique aspects of the attack with the goal of reverse engineering a detection scheme.
+In order to create a program that detects specific attacks, we conducted some exploratory tests. For each script, we ran the attack with Wireshark in the background so we could analyze the unique aspects of the attack with the goal of reverse engineering a detection scheme.
 
 ## 3.1 NMAP
 
-To learn how to detect NMAP scans on the network, we first ran the different types of scans with Wireshark performing packet capture in the backround. While we approached the detection of each NMAP scan with the same strategy, we had to use slightly different checks for each scan.  
+To learn how to detect NMAP scans on the network, we first ran the different types of scans with Wireshark performing packet capture in the background. While we approached the detection of each NMAP scan with the same strategy, we had to use slightly different checks for each scan.  
 
 ### 3.1.1 SYN Scan
 
-Because of the frequency of legitmate TCP SYN packets, we had to find a distinguishing factor of NMAP SYN scan packets. From online research, we discovered that NMAP SYN scan packets always have a standard window size: 1024, 2048, 3072, or 4096.
+Because of the frequency of legitimate TCP SYN packets, we had to find a distinguishing factor of NMAP SYN scan packets. From online research, we discovered that NMAP SYN scan packets always have a standard window size: 1024, 2048, 3072, or 4096.
 
 From the information about the window size and given that NMAP SYN scan packets have the FIN flag set, we can distinguish a SYN scan packet *by signature* using the following Wireshark flags:  
 
@@ -96,9 +88,13 @@ Because XMAS scans utilize several TCP flags in an otherwise uncommon combinatio
 
 ## 3.2 Ettercap
 
-To learn how to detect a man-in-the-middle attack from Ettercap, we first ran the attack on our network while monitoring the traffic using Wireshark. Since PyShark does not have any support for ARP traffic, we decided to use the python module *Scapy* instead. To detect if an ARP Cache Spoof has occured, we checked if the reported source mac address in each packet, matched the true mac address.  
+To learn how to detect a man-in-the-middle attack from Ettercap, we first ran the attack on our network while monitoring the traffic using Wireshark. Since PyShark does not have any support for ARP traffic, we decided to use the python module *Scapy* instead. To detect if an ARP Cache Spoof has occurred, we checked if the reported source mac address in each packet, matched the true mac address.  
 
 ## 3.3 Responder
+
+Usually, DNS is used to resolve domain names. When DNS fails, Windows uses LLMNR (Link-Local Multicast Name Resolution) to resolve names. If even LLMNR fails, NBNS (NetBIO Name Service) - which uses UDP - is used for name resolution. 
+
+Responder takes advantage of this by listening for NBNS and LLMNR queries. Responder then responds to those queries, claiming to be the domain the victim is searching for. We can detect Responder attacks by listening for a NBNS query followed immediately by a response from a valid IP. This strategy utilizes *signature* detection.
 
 ![Initial Responder Test][respondertest]\  
 
@@ -107,7 +103,7 @@ To learn how to detect a man-in-the-middle attack from Ettercap, we first ran th
 
 When learning how to detect the metasploit Eternal Blue attack, we first ran an attack on our our network while monitoring and recording the traffic using Wireshark. On closer research of what the Eternal Blue exploit enacts, we monitored the traffic for repeated NT requests/ responses over the network.  
 
-The large amount of requests sets up the SMB for a specific packet that will exploit system. The large NT Trans requests lead into Secondary Trans2 Requests that act as a launcher for the malware on the remote machine. This packet may show as a malformed packet. Successful or in-progress requests and responses for this type of attack will have the Multiplex ID's consisting 82, 81, 65, and 64 as well checking for nt_value for a successful connection.  
+The large amount of requests sets up the SMB for a specific packet that will exploit system. The large NT Trans requests lead into Secondary Trans Requests that act as a launcher for the malware on the remote machine. This packet may show as a malformed packet. Successful or in-progress requests and responses for this type of attack will have the Multiplex ID's consisting 82, 81, 65, and 64 as well checking for nt_value for a successful connection.  
 
 The following searches for these conditions:  
 
@@ -185,7 +181,7 @@ Since Wireshark does not implement a way to directly filter for ARP traffic, we 
 
 from scapy.all import Ether, ARP, srp, sniff, conf
 
-#Helper function to find mac addr
+#Helper function to find mac address
 def get_mac(ip):
   #Returns true mac address of ip
   #Throws IndexError if blocked
@@ -208,7 +204,7 @@ def checker(pkt):
     response_mac = pkt[ARP].hwsrc
 
     #if they don't match, arp 
-    #cache poisoning is occuring
+    #cache poisoning is occurring
     if real_mac != response_mac:
       print('ARP Cache Spoof Detected')
       print('Real mac addr: ', str(real_mac.upper()))
@@ -230,13 +226,6 @@ sniff(iface='Ethernet 10', prn=checker, filter='arp', store=False)
 
 import pyshark
 
-# During live capture, filter by protocols NBNS
-# *** Usually, DNS is used to resolve domain names.
-# *** When DNS fails, Windows uses LLMNR (Link-Local Multicast Name Resolution) to resolve names
-# *** If even LLMNR fails, NBNS (NetBIO Name Service) - which uses UDP - is used for name resolution
-# *** Responder takes advantage of this by listening for NBNS and LLMNR queries.
-# *** Responder then responds to those queries, claiming to be the domain the victim is searching for.
-# *** If an NBNS query is detected, followed immediately by a response from a valid IP, a Responder attack has occurred.
 
 # Start live capture (change interface when needed)
 cap = pyshark.LiveCapture(interface='eth0', display_filter='nbns')
@@ -304,6 +293,10 @@ For each attack, we deployed Wireshark and our intrusion detection system in the
 
 ## 5.3 Responder Detection
 
+![Responder Test][responder1]\  
+  
+![Responder Test][responder2]\  
+
 ## 5.4 Metasploit Detection
 
 ![Metasploit Result][metagood]\  
@@ -313,22 +306,24 @@ For each attack, we deployed Wireshark and our intrusion detection system in the
 
 In completing this assignment, we were successfully able to deploy and detect each of the four attacks using a proprietary intrusion detection system, all while monitoring and analyzing the network traffic. After completing this assignment, we have a much deeper understanding of the nature of intrusion detection systems. In addition, we developed a greater appreciation for the role of a *blue team* in companies, having this project closely reflect their work.   
 
-This project showed just how challenging it is to defend against network attacks. While our script detects the vanilla version of each attack, there are certainly a litany of ways to spoof our intrusion detection system. Despite this, we do acknowledge that our program could forseeably grow into a sophisticated, industrial-grade intrusion detection system. The industrial intrusion detection systems.  
+This project showed just how challenging it is to defend against network attacks. While our script detects the vanilla version of each attack, there are certainly a litany of ways to spoof our intrusion detection system. Despite this, we do acknowledge that our program could foreseeably grow into a sophisticated, industrial-grade intrusion detection system. The industrial intrusion detection systems.  
 
 \newpage
 # 7 Recommendations
 
 We would advise any business with an active network to purchase an industrial-grade intrusion detection system or intrusion prevention system. Anti-virus software is the easiest and most efficient way to protect against attackers.  
 
-In addition, we advise business to frequently update software to the newest, safe version. It is extreamly common for vulnerabilities to be fixed in updates. Having the latest version will protect againsts most known vulnerablilities.  
+In addition, we advise business to frequently update software to the newest, safe version. It is extremely common for vulnerabilities to be fixed in updates. Having the latest version will protect against most known vulnerabilities.  
 
-For example, the vulnerabillity of Eternal Blue is caused by an outdated version SMB that could be on any given machine. A reccomendation to avoid this attack would be to consistantly update software to the newest version, such as the MS17-010 security update.    
+For example, the vulnerability of Eternal Blue is caused by an outdated version SMB that could be on any given machine. A recommendation to avoid this attack would be to consistently update software to the newest version, such as the MS17-010 security update.    
 
 Finally, we advise companies to conduct frequent penetration tests. This will thwart out many of the vulnerabilities in a network.  
 
 --- 
 
 [respondertest]:pics\respondertest.jpg "Responder Test"{ width=100% }  
+[responder1]:pics\responderAttack2.jpg "Responder Test"{ width=100% }  
+[responder2]:pics\responderAttack5.jpg "Responder Test"{ width=100% }  
 [acktest]:pics\nmapacktest.png "ACK Scan Test"{ width=90% }  
 [syntest]:pics\nmapsyntest.png "SYN Scan Test"{ width=90% }  
 [xmastest]:pics\nmapxmastest.png "XMAS Scan Test"{ width=90% }  
