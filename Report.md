@@ -243,27 +243,28 @@ For each attack, we deployed Wireshark and our intrusion detection system in the
 
 ### 5.1.1 SYN Scan
 
-![SYN Scan Detection][syngood]\
+![SYN Scan Detection][syngood]\  
 
 ### 5.1.2 ACK Scan
 
-![ACK Scan Detection][ackgood]\
+![ACK Scan Detection][ackgood]\  
 
 
 ### 5.1.3 XMAS Scan
 
-![XMAS Scan Detection][xmasgood]\
+![XMAS Scan Detection][xmasgood]\  
 
 ## 5.2 Ettercap Detection
 
-![Ettercap Test][ettercapfound]\
-![Ettercap Result][ettercapcmd]\
+![Ettercap Test][ettercapfound]\  
+![Ettercap Result][ettercapcmd]\  
 
 ## 5.3 Responder Detection
 
 ## 5.4 Metasploit Detection
 
-![Metasploit Test][metatest]\
+![Metasploit Test][metatest]\  
+![Metasploit Result][metagood]\  
 
 \newpage
 # 6 Conclusions
@@ -287,4 +288,5 @@ This project showed just how challenging it is to defend against network attacks
 [ackgood]:pics\ackood.png "ACK Scan Test"( width=70% )  
 [xmasgood]:pics\xmasgood.png "XMAS Scan Test"( width=70% )  
 [metatest]:pics\metatest.png "Metasploit Test"( width=70% )  
+[metagood]:pics\metagood.png "Metasploit Results"( width=70% )  
 
