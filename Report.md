@@ -15,7 +15,7 @@ The purpose of this project was to develop and demonstrate our understanding of 
  
 Our assignment was to pose as member of a company's *"blue team"*, protecting our company against malware. To do this, we designed and tested a proprietary IDS that detects a variety of attacks.  
 
-**Our script, that utilizes *signature* and *heuristic* based itrusion detection, does successfully detects a variety of attacks.**
+**Our script, that utilizes *signature* and *heuristic* based intrusion detection, does successfully detects a variety of attacks.**
 
 
 \newpage
@@ -223,9 +223,7 @@ sniff(iface='Ethernet 10', prn=checker, filter='arp', store=False)
 ## 4.3 Responder Detection
 
 ```python
-
 import pyshark
-
 
 # Start live capture (change interface when needed)
 cap = pyshark.LiveCapture(interface='eth0', display_filter='nbns')
@@ -237,9 +235,7 @@ for packet in cap.sniff_continuously():
 		break
 ```
 
-
 ## 4.4 Metasploit Detection
-
 
 ```python 
 
